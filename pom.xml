@@ -21,6 +21,20 @@
             <artifactId>core</artifactId>
             <version>4.5.5</version>
         </dependency>
+
+        <!-- BTC -->
+        <dependency>
+            <groupId>org.bitcoinj</groupId>
+            <artifactId>bitcoinj-core</artifactId>
+            <version>0.14.7</version>
+        </dependency>
+
+        <!-- @Getter @Setter 注解增强包-->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.16.22</version>
+        </dependency>
     </dependencies>
 
 
