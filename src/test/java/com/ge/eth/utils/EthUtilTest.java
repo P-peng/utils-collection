@@ -63,7 +63,7 @@ public class EthUtilTest {
 
     @Test
     public void tokenTransactionTest(){
-        String privateKey = "33969a4f087f2433c5e08ccc1011bdc0498cd19e8bb132d5fa82e687e7038dde";
+        String privateKey = "xx";
         String toAddress = "0x06193DD85759b278063e0F7da45Ed84BF0C7b765";
         Double amount = new Double(0.000001);
         BigDecimal gasPrice = new BigDecimal(2);
@@ -91,7 +91,7 @@ public class EthUtilTest {
 
     @Test
     public void contractTransactionTest(){
-        String privateKey = "33969a4f087f2433c5e08ccc1011bdc0498cd19e8bb132d5fa82e687e7038dde";
+        String privateKey = "xx";
         String toAddress = "0x06193DD85759b278063e0F7da45Ed84BF0C7b765";
         Double amount = new Double(0.000001);
         BigDecimal gasPrice = new BigDecimal(2);
