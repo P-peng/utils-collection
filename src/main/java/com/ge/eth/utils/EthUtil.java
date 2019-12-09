@@ -161,7 +161,7 @@ public class EthUtil {
         BigInteger gasLimit = BigInteger.valueOf(21000);
         // 转账人私钥
         Credentials credentials = Credentials.create(privateKey);
-        //创建交易
+        // 创建交易
         BigInteger value = Convert.toWei(Double.toString(amount), Convert.Unit.ETHER).toBigInteger();
         RawTransaction rawTransaction = RawTransaction.createEtherTransaction(
                 nonce, gasPrice, gasLimit, toAddress, value);

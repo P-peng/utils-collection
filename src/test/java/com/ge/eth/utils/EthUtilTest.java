@@ -8,6 +8,8 @@ import org.web3j.tx.ChainIdLong;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -16,7 +18,7 @@ import java.util.concurrent.ExecutionException;
  */
 public class EthUtilTest {
 
-    String hash = "0xc31860547cbedb56471ff482037b70cc3a90a616b0531b8f3b24e71b3c68d97d2";
+    String hash = "0xd17a26c905adda2d4f3b1388778c0ac4930113b25df9fa92400cf889b18eca08";
     String address = "0x107B7c28E991760bD7E647195A931e174202825a";
     String contract = "0x4df9500a02d64dcff99562ad128432832bac29a4";
 
@@ -39,9 +41,14 @@ public class EthUtilTest {
 
     @Test
     public void getBalanceByAddressTest(){
+        List<String> list = new ArrayList<>();
+        list.add("0xe408721d4769De32ac00B682632bd86bEaaCd706");
+        list.add("0x5e224698758B3dA4021604F02771B33318Ad48Ba");
         try {
-            BigDecimal bigDecimal = EthUtil.getEthBalanceByAddress("0x107B7c28E991760bD7E647195A931e174202825a");
-            System.out.println(bigDecimal);
+            for (String s : list) {
+                BigDecimal bigDecimal = EthUtil.getEthBalanceByAddress(s);
+                System.out.println(s + "  " + bigDecimal);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -50,7 +57,7 @@ public class EthUtilTest {
     @Test
     public void getNonceByAddressTest(){
         try {
-            System.out.println(EthUtil.getNonceByAddress("0xfC33984A16FeC91Bece89f73B65f60841F08059B"));
+            System.out.println(EthUtil.getNonceByAddress("0x236161041b291e4f24C6c159864dcc998657D92b"));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -62,12 +69,19 @@ public class EthUtilTest {
     }
 
     @Test
-    public void tokenTransactionTest(){
+    public void tokenTransactionTest() throws IOException {
+        String fromAddress = "xx";
         String privateKey = "xx";
-        String toAddress = "0x06193DD85759b278063e0F7da45Ed84BF0C7b765";
-        Double amount = new Double(0.000001);
-        BigDecimal gasPrice = new BigDecimal(2);
-        BigInteger nonce = new BigInteger("3");
+
+        String toAddress = "xx";
+        Double amount = new Double(0.0310);
+        /**
+         * 手续费倍率，2最低，4慢，6中，8快
+         * 估算，4 gasPrice 约等于 0.01usd,
+         * 估算， 每加 2 gasPrice 相当于 +0.01usd
+         */
+        BigDecimal gasPrice = new BigDecimal(6);
+        BigInteger nonce = EthUtil.getNonceByAddress(fromAddress);
 
         try {
             System.out.println(EthUtil.ethTransactionRaw(privateKey, toAddress, amount, gasPrice, nonce));
