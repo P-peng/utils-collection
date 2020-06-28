@@ -18,7 +18,7 @@ import java.util.concurrent.ExecutionException;
  */
 public class EthUtilTest {
 
-    String hash = "0xd17a26c905adda2d4f3b1388778c0ac4930113b25df9fa92400cf889b18eca08";
+    String hash = "0x441d44e8c1878e6a9f9175618bc07228c7f6fa8e4f1217f12e9d50df697a7b13";
     String address = "0x107B7c28E991760bD7E647195A931e174202825a";
     String contract = "0x4df9500a02d64dcff99562ad128432832bac29a4";
 
@@ -44,6 +44,8 @@ public class EthUtilTest {
     public void getInfoByHashRawTest(){
         try {
             System.out.println(EthUtil.getInfoByHashRaw(hash));
+
+            System.out.println(EthUtil.getInfoReceiptByHashRaw(hash));
         } catch (IOException e) {
             e.printStackTrace();
         }
