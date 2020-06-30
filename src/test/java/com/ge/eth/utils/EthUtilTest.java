@@ -238,4 +238,211 @@ public class EthUtilTest {
         System.out.println(money);
     }
 
+    /*
+     *   ERC 721
+     */
+    /** 迷念猫的合约 */
+//    private String ERC721_CONTRACT = "0x06012c8cf97BEaD5deAe237070F9587f8E7A266d";
+//    /** 其它合约 */
+    private String ERC721_CONTRACT = "0xD51f0F2127381F33D25127a6fB2626Ba4Eb60824";
+    // tokenId
+    private Long ERC721_TOKEN_ID = 1488471L;
+    // address
+    private String ERC721_ADDRESS = "";
+    // privateKey
+    private String ERC721_PRIVATE_KEY = "";
+
+    /**
+     * 查询全称
+     *
+     * @throws IOException
+     */
+    @Test
+    public void name() throws IOException {
+//        String name = EthUtil.name(ERC721_CONTRACT);
+        String name = EthUtil.name(ERC721_CONTRACT);
+        System.out.println(convert(name));
+        System.out.println(convert(name).length());
+    }
+
+    /**
+     * 查询符合
+     *
+     * @throws IOException
+     */
+    @Test
+    public void symbol() throws IOException {
+        String name = EthUtil.symbol(ERC721_CONTRACT);
+//        String name = EthUtil.symbol("0x3989f5e33509cd200a39b6355128c9cb5f8ddf5a");
+        name = convert(name);
+        System.out.println(name);
+        System.out.println(name.length());
+    }
+
+    /**
+     * 查询 tokenId 属于那个地址
+     *
+     * @throws IOException
+     */
+    @Test
+    public void ownerOfTest() throws IOException {
+        String address = EthUtil.ownerOf(ERC721_TOKEN_ID, ERC721_CONTRACT);
+        System.out.println(address);
+    }
+
+    /**
+     * 查询 合约 系的总资产（总tokenId数量）
+     *
+     * @throws IOException
+     */
+    @Test
+    public void totalSupplyTest() throws IOException {
+        String address = EthUtil.totalSupply(ERC721_CONTRACT);
+        System.out.println(address);
+    }
+
+    /**
+     * 查询当前地址资产
+     *
+     * @throws IOException
+     */
+    @Test
+    public void balanceOfTest() throws IOException {
+        String address = EthUtil.balanceOf(ERC721_ADDRESS, ERC721_CONTRACT);
+        System.out.println(address);
+    }
+
+    /**
+     * 查询 metadata 基础地址
+     *
+     * @throws IOException
+     */
+    @Test
+    public void baseURITest() throws IOException {
+        String url = EthUtil.baseURI(ERC721_ADDRESS, ERC721_CONTRACT);
+        System.out.println(convert(url));
+    }
+
+    /**
+     * 查询 tokenURI
+     *
+     * @throws IOException
+     */
+    @Test
+    public void tokenURITest() throws IOException {
+        BigInteger tokenId = new BigInteger("218");
+        String data = EthUtil.tokenURI(ERC721_CONTRACT, tokenId);
+        System.out.println(convert(data));
+    }
+
+    /**
+     * 给某个地址发行tokenId
+     *
+     * @throws IOException
+     */
+    @Test
+    public void issueTokenId() throws IOException {
+        String toAddress = "0xfC33984A16FeC91Bece89f73B65f60841F08059B";
+        String fromAddress = ERC721_ADDRESS;
+        String privateKey = ERC721_PRIVATE_KEY;
+
+        BigDecimal bigDecimal = new BigDecimal("8");
+//        860a
+//        BigInteger tokenId = new BigInteger("1461501637330902768847068807506854394484130136909");
+        BigInteger tokenId = new BigInteger("2");
+        String hash = EthUtil.issueTokenId(toAddress, fromAddress, privateKey, ERC721_CONTRACT, bigDecimal, tokenId);
+        System.out.println(hash);
+    }
+
+    /**
+     *
+     * 设置基础 metadata 地址
+     *
+     * @throws IOException
+     */
+    @Test
+    public void setBaseURI() throws IOException {
+        String address = "0xfC33984A16FeC91Bece89f73B65f60841F08059B";
+        BigDecimal gasPriceValue = new BigDecimal("8");
+        String baseUrl = "http://download.bljlighting.com/";
+        String hash = EthUtil.setBaseURI(address, ERC721_PRIVATE_KEY, ERC721_CONTRACT, gasPriceValue, baseUrl);
+        System.out.println(hash);
+    }
+
+    /**
+     *
+     * 设置 tokenId 关联元数据
+     *
+     * @throws IOException
+     */
+    @Test
+    public void setTokenURI() throws IOException {
+        String address = "0xfC33984A16FeC91Bece89f73B65f60841F08059B";
+        BigDecimal gasPriceValue = new BigDecimal("8");
+        BigInteger tokenId = new BigInteger("218");
+        String tokenUrl = "test.json";
+        String hash = EthUtil.setTokenURI(address, ERC721_PRIVATE_KEY, ERC721_CONTRACT, gasPriceValue, tokenId, tokenUrl);
+        System.out.println(hash);
+    }
+
+
+    /**
+     *
+     * 转移tokenId, fromAddress -> toAddress
+     *
+     * @throws IOException
+     */
+    @Test
+    public void safeTransferFrom() throws IOException {
+        String toAddress = "0x06193DD85759b278063e0F7da45Ed84BF0C7b765";
+        BigDecimal gasPriceValue = new BigDecimal("8");
+        String hash = EthUtil.safeTransferFrom(toAddress, ERC721_ADDRESS, ERC721_PRIVATE_KEY, ERC721_CONTRACT, gasPriceValue);
+        System.out.println(hash);
+    }
+
+    ///////////////////////////////////////////////
+    /**
+     * 工具类
+     */
+    /**
+     * 除去特殊字符
+     *
+     * @param var
+     * @return
+     */
+    public static String convert(String var){
+        var = var.replace("0x", "");
+        var = hexStringToString(var);
+        var = var.replace(" ", "");
+        var = var.replaceAll("[\\u0000]", "");
+        var = var.substring(1, var.length());
+        return var;
+    }
+
+    /**
+     * 16进制转换成为string类型字符串
+     * @param s
+     * @return
+     */
+    public static String hexStringToString(String s) {
+        if (s == null || s.equals("")) {
+            return null;
+        }
+
+        s = s.replace(" ", "");
+        byte[] baKeyword = new byte[s.length() / 2];
+        for (int i = 0; i < baKeyword.length; i++) {
+            try {
+                baKeyword[i] = (byte) (0xff & Integer.parseInt(s.substring(i * 2, i * 2 + 2), 16));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        try {
+            s = new String(baKeyword, "UTF-8");
+        } catch (Exception e1) {
+            e1.printStackTrace();
+        }
+        return s;
+    }
 }
