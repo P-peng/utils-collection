@@ -31,9 +31,9 @@ public class EthUtilTest {
      */
     @Test
     public void createAccountTest() throws Exception {
-        for (int i = 0; i < 20; i++) {
+//        for (int i = 0; i < 20; i++) {
             System.out.println(EthUtil.createAccount());
-        }
+//        }
     }
 
     /**

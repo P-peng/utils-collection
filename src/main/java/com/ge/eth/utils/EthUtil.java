@@ -1,6 +1,5 @@
 package com.ge.eth.utils;
 
-import com.ge.eth.entity.EthAccount;
 import com.google.common.collect.ImmutableList;
 import com.sun.istack.internal.logging.Logger;
 import org.bitcoinj.crypto.*;
@@ -49,7 +48,9 @@ public class EthUtil {
      */
     private static Web3j web3 = Web3j.build(new HttpService(BASE_URL));
 
-
+    /**
+     * 助记词类型 ETH
+     */
     private final static ImmutableList<ChildNumber> BIP44_ETH_ACCOUNT_ZERO_PATH =
             ImmutableList.of(new ChildNumber(44, true), new ChildNumber(60, true),
                     ChildNumber.ZERO_HARDENED, ChildNumber.ZERO);
@@ -58,10 +59,11 @@ public class EthUtil {
 
     /**
      * 创建ETH新地址,不依赖于链上
-     * @return 返回得对象携带 地址，私钥，公钥，助记词
-     * @throws Exception
+     *
+     * @return mnemonic -> 助记词， privateKey -> 私钥， publicKey -> 公钥， address -> 地址
+     * @throws MnemonicException.MnemonicLengthException
      */
-    public static EthAccount createAccount() throws Exception {
+    public static Map<String, String> createAccount() throws MnemonicException.MnemonicLengthException {
         SecureRandom secureRandom = new SecureRandom();
         byte[] entropy = new byte[DeterministicSeed.DEFAULT_SEED_ENTROPY_BITS / 8];
         secureRandom.engineNextBytes(entropy);
@@ -83,12 +85,12 @@ public class EthUtil {
         String privateKey = keyPair.getPrivateKey().toString(16);
         // 公钥 转换16进制
         String publicKey = keyPair.getPublicKey().toString(16);
-        EthAccount ethAccount = new EthAccount();
-        ethAccount.setMnemonic(mnemonic);
-        ethAccount.setPublicKey(publicKey);
-        ethAccount.setPrivateKey(privateKey);
-        ethAccount.setAddress(address);
-        return ethAccount;
+        HashMap<String, String> map = new HashMap<>(8);
+        map.put("mnemonic", mnemonic);
+        map.put("privateKey", privateKey);
+        map.put("publicKey", publicKey);
+        map.put("address", address);
+        return map;
     }
 
     /**
@@ -140,7 +142,7 @@ public class EthUtil {
 
     /**
      * 可用
-     * 根据地址获取当前nonce的值，返回的是最后一次的nonce + 1
+     * 根据地址获取当前nonce的值，返回的是最后一次的 nonce + 1
      * @param address
      * @return
      * @throws IOException
@@ -178,21 +180,6 @@ public class EthUtil {
         String hash = web3.ethSendRawTransaction(hexValue).send().getTransactionHash();
         return hash;
     }
-
-    /**
-     * 各种币的授权
-     */
-    public void accountApprove(){
-
-    }
-
-    /**
-     * 各种币的授权交易(归集)
-     */
-    public void accountApproveTransaction(){
-
-    }
-
 
     private static boolean isValidAddress(String input) {
         String cleanInput = Numeric.cleanHexPrefix(input);
@@ -487,7 +474,7 @@ public class EthUtil {
     }
 
     /**
-     * 查询 tokenId 属于那个地址
+     * 查询 d 属于那个地址
      *
      * @param contract
      * @return 16进制数据
