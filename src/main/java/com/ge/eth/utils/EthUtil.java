@@ -507,7 +507,7 @@ public class EthUtil {
      * @return 16进制数据
      * @throws IOException
      */
-    public static String ownerOf(Long tokenId, String contract) throws IOException{
+    public static String ownerOf(BigInteger tokenId, String contract) throws IOException{
         // 函数类
         Function function = new Function(
                 // 函数类型
@@ -664,6 +664,41 @@ public class EthUtil {
         }
     }
 
+
+    public static String recycleTokenId(String toAddress, String fromAddress, String privateKey, String contractAddress, BigDecimal gasPriceValue, BigInteger tokenId){
+        try{
+            // 去链上获取noces的值，可考虑函数传入
+//            BigInteger nonce = new BigInteger("233");
+            BigInteger nonce = web3.ethGetTransactionCount(fromAddress, DefaultBlockParameterName.PENDING).send().getTransactionCount();
+            // 支付的矿工费倍率 相当于加速
+            BigInteger gasPrice = Convert.toWei(gasPriceValue, Convert.Unit.GWEI).toBigInteger();
+            // 支付矿工费的基础额度
+            BigInteger gasLimit = new BigInteger("210000");
+            Credentials credentials = Credentials.create(privateKey);
+
+            // 封装转账交易, 类似于sdk调用智能合约
+            Function function = new Function(
+                    "recycleTokenId",
+                    Arrays.<Type>asList(
+                            new Address(toAddress),
+                            new Uint256(tokenId)),
+                    Collections.<TypeReference<?>>emptyList());
+            String data = FunctionEncoder.encode(function);
+            // 构造裸交易
+            RawTransaction rawTransaction = RawTransaction.createTransaction(nonce, gasPrice, gasLimit, contractAddress, data);
+            // 签名裸交易
+            byte[] signMessage = TransactionEncoder.signMessage(rawTransaction, credentials);
+            // 广播裸交易
+            String hash = web3.ethSendRawTransaction(Numeric.toHexString(signMessage)).sendAsync().get().getTransactionHash();
+//            logger.info("ETH代币转账,发送方:{},接收方:{},发送金额:{},hash:{}",new Object[]{from,to,amount,hash});
+            return hash ;
+        }catch (Exception e){
+            e.printStackTrace();
+//            logger.info("虚拟币ETH代币转账失败，错误代码：{}",new Object[]{e.getMessage()});
+            return null ;
+        }
+    }
+
     public static String setBaseURI(String address, String privateKey, String contractAddress, BigDecimal gasPriceValue, String baseUrl){
         try{
             // 去链上获取noces的值，可考虑函数传入
@@ -730,7 +765,7 @@ public class EthUtil {
         }
     }
 
-    public static String safeTransferFrom(String toAddress, String fromAddress, String privateKey, String contractAddress, BigDecimal gasPriceValue){
+    public static String safeTransferFrom(String toAddress, String fromAddress, String privateKey, String contractAddress, BigDecimal gasPriceValue, BigInteger tokenId){
         try{
             // 去链上获取noces的值，可考虑函数传入
 //            BigInteger nonce = new BigInteger("120");
@@ -743,9 +778,12 @@ public class EthUtil {
 
             // 封装转账交易, 类似于sdk调用智能合约
             Function function = new Function(
-                    "transferContractOwner",
+                    "safeTransferFrom",
                     Arrays.<Type>asList(
-                            new Address(toAddress)),
+                            new Address(fromAddress),
+                            new Address(toAddress),
+                            new Uint256(tokenId)
+                            ),
                     Collections.<TypeReference<?>>emptyList());
             String data = FunctionEncoder.encode(function);
             // 构造裸交易

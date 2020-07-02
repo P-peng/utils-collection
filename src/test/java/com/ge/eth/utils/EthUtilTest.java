@@ -18,9 +18,10 @@ import java.util.concurrent.ExecutionException;
  */
 public class EthUtilTest {
 
-    String hash = "0x441d44e8c1878e6a9f9175618bc07228c7f6fa8e4f1217f12e9d50df697a7b13";
+    String hash = "0xc9dd18ed6caa831eb391a74c17bb377a4b39c0466eed4803ff2e857e88c78ccf";
     String address = "0x107B7c28E991760bD7E647195A931e174202825a";
     String contract = "0x4df9500a02d64dcff99562ad128432832bac29a4";
+    String ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
     long chainId = ChainIdLong.MAINNET;
 
@@ -244,16 +245,20 @@ public class EthUtilTest {
     /** 迷念猫的合约 */
 //    private String ERC721_CONTRACT = "0x06012c8cf97BEaD5deAe237070F9587f8E7A266d";
 //    /** 其它合约 */
-    private String ERC721_CONTRACT = "0xD51f0F2127381F33D25127a6fB2626Ba4Eb60824";
+    private String ERC721_CONTRACT = "0xa89c36ef635803cdf2157edce94780d7bbefbf89";
     // tokenId
     private Long ERC721_TOKEN_ID = 1488471L;
     // address
     private String ERC721_ADDRESS = "";
     // privateKey
     private String ERC721_PRIVATE_KEY = "";
+    // address
+    private String ERC721_ADDRESS2 = "";
+    // privateKey
+    private String ERC721_PRIVATE_KEY2 = "";
 
     /**
-     * 查询全称
+     * 查询 全称
      *
      * @throws IOException
      */
@@ -262,11 +267,10 @@ public class EthUtilTest {
 //        String name = EthUtil.name(ERC721_CONTRACT);
         String name = EthUtil.name(ERC721_CONTRACT);
         System.out.println(convert(name));
-        System.out.println(convert(name).length());
     }
 
     /**
-     * 查询符合
+     * 查询 符号
      *
      * @throws IOException
      */
@@ -286,7 +290,8 @@ public class EthUtilTest {
      */
     @Test
     public void ownerOfTest() throws IOException {
-        String address = EthUtil.ownerOf(ERC721_TOKEN_ID, ERC721_CONTRACT);
+        BigInteger tokenId = new BigInteger("1");
+        String address = EthUtil.ownerOf(tokenId, ERC721_CONTRACT);
         System.out.println(address);
     }
 
@@ -297,8 +302,9 @@ public class EthUtilTest {
      */
     @Test
     public void totalSupplyTest() throws IOException {
-        String address = EthUtil.totalSupply(ERC721_CONTRACT);
-        System.out.println(address);
+        String countString = EthUtil.totalSupply(ERC721_CONTRACT);
+        BigInteger count = new BigInteger(countString.substring(2), 16);
+        System.out.println(count);
     }
 
     /**
@@ -330,7 +336,7 @@ public class EthUtilTest {
      */
     @Test
     public void tokenURITest() throws IOException {
-        BigInteger tokenId = new BigInteger("218");
+        BigInteger tokenId = new BigInteger("1");
         String data = EthUtil.tokenURI(ERC721_CONTRACT, tokenId);
         System.out.println(convert(data));
     }
@@ -349,8 +355,27 @@ public class EthUtilTest {
         BigDecimal bigDecimal = new BigDecimal("8");
 //        860a
 //        BigInteger tokenId = new BigInteger("1461501637330902768847068807506854394484130136909");
-        BigInteger tokenId = new BigInteger("2");
+        BigInteger tokenId = new BigInteger("1");
         String hash = EthUtil.issueTokenId(toAddress, fromAddress, privateKey, ERC721_CONTRACT, bigDecimal, tokenId);
+        System.out.println(hash);
+    }
+
+    /**
+     * 摧毁 to 地址 的 tokenId, 合约所有者调用
+     *
+     * @throws IOException
+     */
+    @Test
+    public void recycleTokenIdTest() throws IOException {
+        String toAddress = "0xfC33984A16FeC91Bece89f73B65f60841F08059B";
+        String fromAddress = ERC721_ADDRESS2;
+        String privateKey = ERC721_PRIVATE_KEY2;
+
+        BigDecimal bigDecimal = new BigDecimal("8");
+//        860a
+//        BigInteger tokenId = new BigInteger("1461501637330902768847068807506854394484130136909");
+        BigInteger tokenId = new BigInteger("1");
+        String hash = EthUtil.recycleTokenId(toAddress, fromAddress, privateKey, ERC721_CONTRACT, bigDecimal, tokenId);
         System.out.println(hash);
     }
 
@@ -394,9 +419,10 @@ public class EthUtilTest {
      */
     @Test
     public void safeTransferFrom() throws IOException {
-        String toAddress = "0x06193DD85759b278063e0F7da45Ed84BF0C7b765";
+        String toAddress = ZERO_ADDRESS;
         BigDecimal gasPriceValue = new BigDecimal("8");
-        String hash = EthUtil.safeTransferFrom(toAddress, ERC721_ADDRESS, ERC721_PRIVATE_KEY, ERC721_CONTRACT, gasPriceValue);
+        BigInteger tokenId = new BigInteger("2");
+        String hash = EthUtil.safeTransferFrom(toAddress, ERC721_ADDRESS, ERC721_PRIVATE_KEY, ERC721_CONTRACT, gasPriceValue, tokenId);
         System.out.println(hash);
     }
 

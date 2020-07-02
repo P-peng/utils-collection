@@ -2,17 +2,17 @@
 
 pragma solidity ^0.6.0;
 
-import "./Context.sol";
+import "../../GSN/Context.sol";
 import "./IERC721.sol";
 import "./IERC721Metadata.sol";
 import "./IERC721Enumerable.sol";
 import "./IERC721Receiver.sol";
-import "./ERC165.sol";
-import "./SafeMath.sol";
-import "./Address.sol";
-import "./EnumerableSet.sol";
-import "./EnumerableMap.sol";
-import "./Strings.sol";
+import "../../introspection/ERC165.sol";
+import "../../math/SafeMath.sol";
+import "../../utils/Address.sol";
+import "../../utils/EnumerableSet.sol";
+import "../../utils/EnumerableMap.sol";
+import "../../utils/Strings.sol";
 
 /**
  * @title ERC721 Non-Fungible Token Standard basic implementation
@@ -29,25 +29,25 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata, IERC721Enumerable 
     // which can be also obtained as `IERC721Receiver(0).onERC721Received.selector`
     bytes4 private constant _ERC721_RECEIVED = 0x150b7a02;
 
-    // Mapping from holder address to their (enumerable) set of owned tokens,  ( address -> Set<tokenId> )
+    // Mapping from holder address to their (enumerable) set of owned tokens
     mapping (address => EnumerableSet.UintSet) private _holderTokens;
 
-    // Enumerable mapping from token ids to their owners, ( tokenId -> address )
+    // Enumerable mapping from token ids to their owners
     EnumerableMap.UintToAddressMap private _tokenOwners;
 
-    // Mapping from token ID to approved address, (tokenId -> approvedAddress )
+    // Mapping from token ID to approved address
     mapping (uint256 => address) private _tokenApprovals;
 
     // Mapping from owner to operator approvals
     mapping (address => mapping (address => bool)) private _operatorApprovals;
 
     // Token name
-    string private _name = "Test";
+    string private _name;
 
     // Token symbol
-    string private _symbol = "T";
+    string private _symbol;
 
-    // Optional mapping for token URIs, ( tokenId - > tokenUri)
+    // Optional mapping for token URIs
     mapping (uint256 => string) private _tokenURIs;
 
     // Base URI
@@ -87,30 +87,17 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata, IERC721Enumerable 
      */
     bytes4 private constant _INTERFACE_ID_ERC721_ENUMERABLE = 0x780e9d63;
 
-
-    /**
-     *  constant owner
-     */
-    address private _owner;
-
     /**
      * @dev Initializes the contract by setting a `name` and a `symbol` to the token collection.
      */
-    constructor () public {
-        _owner = msg.sender;
+    constructor (string memory name, string memory symbol) public {
+        _name = name;
+        _symbol = symbol;
 
         // register the supported interfaces to conform to ERC721 via ERC165
         _registerInterface(_INTERFACE_ID_ERC721);
         _registerInterface(_INTERFACE_ID_ERC721_METADATA);
         _registerInterface(_INTERFACE_ID_ERC721_ENUMERABLE);
-    }
-
-    /**
-     * contract owner auth modifier
-     */
-    modifier onlyOwner() {
-        require(msg.sender == _owner, "ERC721: function denies access");
-        _;
     }
 
     /**
@@ -261,56 +248,7 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata, IERC721Enumerable 
     }
 
     /**
-     * @dev issue to address `tokenId`.
-     */
-    function issueTokenId(address to, uint256 tokenId) public virtual onlyOwner{
-        return _safeMint(to, tokenId, "");
-    }
-
-    /**
-     * @dev recycle to address `tokenId`.
-     */
-    function recycleTokenId(address to, uint256 tokenId) public virtual onlyOwner{
-        require(_exists(tokenId), "recycleTokenId: nonexistent tokenId");
-        require(_isApprovedOrOwner(to, tokenId), "recycleTokenId: tokenId is not to address");
-        _holderTokens[to].remove(tokenId);
-        _tokenOwners.remove(tokenId);
-        return true;
-    }
-
-    /**
-     * @dev Sets `_tokenURI` as the tokenURI of `tokenId`.
-     *
-     * Requirements:
-     *
-     * - `tokenId` must exist.
-     */
-    function setTokenURI(uint256 tokenId, string memory _tokenURI) public virtual onlyOwner{
-        require(_exists(tokenId), "ERC721Metadata: URI set of nonexistent token");
-        _tokenURIs[tokenId] = _tokenURI;
-    }
-
-    /**
-     * @dev Internal function to set the base URI for all token IDs. It is
-     * automatically added as a prefix to the value returned in {tokenURI},
-     * or to the token ID if {tokenURI} is empty.
-     */
-    function setBaseURI(string memory baseURI_) public virtual onlyOwner {
-       _setBaseURI(baseURI_);
-    }
-
-    /**
-     * @dev transfer contract owner to address
-     *
-     */
-    function transferContractOwner(address to) public virtual onlyOwner {
-        require(to != address(0), "ERC721: mint to the zero address");
-        _owner = to;
-    }
-
-    /**
-
-     }* @dev Safely transfers `tokenId` token from `from` to `to`, checking first that contract recipients
+     * @dev Safely transfers `tokenId` token from `from` to `to`, checking first that contract recipients
      * are aware of the ERC721 protocol to prevent tokens from being forever locked.
      *
      * `_data` is additional data, it has no specified format and it is sent in call to `to`.
@@ -401,7 +339,6 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata, IERC721Enumerable 
         _holderTokens[to].add(tokenId);
 
         _tokenOwners.set(tokenId, to);
-
 
         emit Transfer(address(0), to, tokenId);
     }
@@ -496,18 +433,18 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata, IERC721Enumerable 
      * @return bool whether the call correctly returned the expected magic value
      */
     function _checkOnERC721Received(address from, address to, uint256 tokenId, bytes memory _data)
-        private returns (bool)
+    private returns (bool)
     {
         if (!to.isContract()) {
             return true;
         }
         bytes memory returndata = to.functionCall(abi.encodeWithSelector(
-            IERC721Receiver(to).onERC721Received.selector,
-            _msgSender(),
-            from,
-            tokenId,
-            _data
-        ), "ERC721: transfer to non ERC721Receiver implementer");
+                IERC721Receiver(to).onERC721Received.selector,
+                _msgSender(),
+                from,
+                tokenId,
+                _data
+            ), "ERC721: transfer to non ERC721Receiver implementer");
         bytes4 retval = abi.decode(returndata, (bytes4));
         return (retval == _ERC721_RECEIVED);
     }
