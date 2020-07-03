@@ -209,22 +209,4 @@ contract Token is ERC20Interface, Owned {
         return ERC20Interface(tokenAddress).transfer(owner, tokens);
     }
 
-    // ------------------------------------------------------------------------
-    // Owner can transfer mint token, and _totalSupply add
-    // ------------------------------------------------------------------------
-    function mintToken(address to, uint tokens)  public onlyOwner returns (bool success) {
-        balances[to] = balances[to].add(tokens);
-        _totalSupply += tokens;
-        emit Transfer(address(0), to, tokens);
-        return true;
-    }
-
-    // ------------------------------------------------------------------------
-    // Owner can transfer reduce address token, and _totalSupply reduce
-    // ------------------------------------------------------------------------
-    function reduceToken(address to, uint tokens)  public onlyOwner returns (bool success) {
-        balances[to] = balances[to].sub(tokens);
-        _totalSupply -= tokens;
-        return true;
-    }
 }

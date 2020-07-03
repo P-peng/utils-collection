@@ -89,7 +89,7 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata, IERC721Enumerable 
 
 
     /**
-     *  constant owner
+     *  Constant owner
      */
     address private _owner;
 
@@ -106,7 +106,7 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata, IERC721Enumerable 
     }
 
     /**
-     * contract owner auth modifier
+     * Contract owner auth modifier
      */
     modifier onlyOwner() {
         require(msg.sender == _owner, "ERC721: function denies access");

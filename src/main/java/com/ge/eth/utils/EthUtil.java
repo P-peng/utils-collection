@@ -327,6 +327,99 @@ public class EthUtil {
 
 
     /**
+     * 给指定的地址增发， 合约所有者调用
+     *
+     * @param to
+     * @param ownerAddress
+     * @param ownerPrivateKey
+     * @param amount
+     * @param contractAddress
+     * @param gasPriceValue
+     * @return
+     */
+    public static String mintToken(String to, String ownerAddress, String ownerPrivateKey, String amount, String contractAddress, BigDecimal gasPriceValue){
+        try{
+            // 去链上获取noces的值，可考虑函数传入
+            BigInteger nonce = web3.ethGetTransactionCount(ownerAddress, DefaultBlockParameterName.PENDING).send().getTransactionCount();
+            // 支付的矿工费倍率 相当于加速
+            BigInteger gasPrice = Convert.toWei(gasPriceValue, Convert.Unit.GWEI).toBigInteger();
+            // 支付矿工费的基础额度
+            BigInteger gasLimit = new BigInteger("210000");
+            Credentials credentials = Credentials.create(ownerPrivateKey);
+            // 18
+            BigInteger amountWei = Convert.toWei(amount, Convert.Unit.ETHER).toBigInteger();
+
+            // 封装转账交易, 类似于sdk调用智能合约
+            Function function = new Function(
+                    "mintToken",
+                    Arrays.<Type>asList(
+                            new Address(to),
+                            new Uint256(amountWei)),
+                    Collections.<TypeReference<?>>emptyList());
+            String data = FunctionEncoder.encode(function);
+            // 构造裸交易
+            RawTransaction rawTransaction = RawTransaction.createTransaction(nonce, gasPrice, gasLimit, contractAddress, data);
+            // 签名裸交易
+            byte[] signMessage = TransactionEncoder.signMessage(rawTransaction, credentials);
+            // 广播裸交易
+            String hash = web3.ethSendRawTransaction(Numeric.toHexString(signMessage)).sendAsync().get().getTransactionHash();
+//            logger.info("ETH代币转账,发送方:{},接收方:{},发送金额:{},hash:{}",new Object[]{from,to,amount,hash});
+            return hash ;
+        }catch (Exception e){
+            e.printStackTrace();
+//            logger.info("虚拟币ETH代币转账失败，错误代码：{}",new Object[]{e.getMessage()});
+            return null ;
+        }
+    }
+
+    /**
+     * 给指定的地址增发， 合约所有者调用
+     *
+     * @param to
+     * @param ownerAddress
+     * @param ownerPrivateKey
+     * @param amount
+     * @param contractAddress
+     * @param gasPriceValue
+     * @return
+     */
+    public static String reduceToken(String to, String ownerAddress, String ownerPrivateKey, String amount, String contractAddress, BigDecimal gasPriceValue){
+        try{
+            // 去链上获取noces的值，可考虑函数传入
+            BigInteger nonce = web3.ethGetTransactionCount(ownerAddress, DefaultBlockParameterName.PENDING).send().getTransactionCount();
+            // 支付的矿工费倍率 相当于加速
+            BigInteger gasPrice = Convert.toWei(gasPriceValue, Convert.Unit.GWEI).toBigInteger();
+            // 支付矿工费的基础额度
+            BigInteger gasLimit = new BigInteger("210000");
+            Credentials credentials = Credentials.create(ownerPrivateKey);
+            // 18位
+            BigInteger amountWei = Convert.toWei(amount, Convert.Unit.ETHER).toBigInteger();
+
+            // 封装转账交易, 类似于sdk调用智能合约
+            Function function = new Function(
+                    "reduceToken",
+                    Arrays.<Type>asList(
+                            new Address(to),
+                            new Uint256(amountWei)),
+                    Collections.<TypeReference<?>>emptyList());
+            String data = FunctionEncoder.encode(function);
+            // 构造裸交易
+            RawTransaction rawTransaction = RawTransaction.createTransaction(nonce, gasPrice, gasLimit, contractAddress, data);
+            // 签名裸交易
+            byte[] signMessage = TransactionEncoder.signMessage(rawTransaction, credentials);
+            // 广播裸交易
+            String hash = web3.ethSendRawTransaction(Numeric.toHexString(signMessage)).sendAsync().get().getTransactionHash();
+//            logger.info("ETH代币转账,发送方:{},接收方:{},发送金额:{},hash:{}",new Object[]{from,to,amount,hash});
+            return hash ;
+        }catch (Exception e){
+            e.printStackTrace();
+//            logger.info("虚拟币ETH代币转账失败，错误代码：{}",new Object[]{e.getMessage()});
+            return null ;
+        }
+    }
+
+
+    /**
      * eth代币授权
      * @param authAddress
      * @param authTargetAddress
@@ -417,7 +510,7 @@ public class EthUtil {
 
     /**
      * 可用
-     * 根据合约查代币的余额, 通过原函数调用，性能低
+     *
      * @param authAddress
      * @param contract
      * @return
@@ -448,7 +541,7 @@ public class EthUtil {
     }
 
     /**
-     * 查询 tokenId 属于那个地址
+     * 查询 合约 的全名
      *
      * @param contract
      * @return 16进制数据
@@ -474,7 +567,7 @@ public class EthUtil {
     }
 
     /**
-     * 查询 d 属于那个地址
+     * 查询 合约 的符号
      *
      * @param contract
      * @return 16进制数据
@@ -553,7 +646,7 @@ public class EthUtil {
     }
 
     /**
-     * 查询 合约 系的总资产（总tokenId）
+     * 查询 地址 总资产（总tokenId）
      *
      * @param contract
      * @return
@@ -579,7 +672,7 @@ public class EthUtil {
     }
 
     /**
-     * 查询 metadata 基础地址
+     * 查询 metadata 基础url
      *
      * @param contract
      * @return
@@ -605,7 +698,7 @@ public class EthUtil {
     }
 
     /**
-     * 查询 metadata 基础地址
+     * 查询 metadata 基础url
      *
      * @param contract
      * @return
