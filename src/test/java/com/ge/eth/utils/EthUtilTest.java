@@ -190,7 +190,7 @@ public class EthUtilTest {
     public void mintToken(){
         String toAddress = "0x06193DD85759b278063e0F7da45Ed84BF0C7b765";
         String ownerAddress = "0xfC33984A16FeC91Bece89f73B65f60841F08059B";
-        String ownerPrivateKey = "860b6a80393c6f945795ea28d760752e7bd2d1ee8a39049a023b001812c02de7";
+        String ownerPrivateKey = "";
         String contractAddres = "0xe94db062c34c09c9b24d01a6fd4b3239443dbc70";
         String amount = "1.1";
         BigDecimal gasPrice = new BigDecimal(8);
@@ -209,7 +209,7 @@ public class EthUtilTest {
     public void reduceToken(){
         String toAddress = "0xfC33984A16FeC91Bece89f73B65f60841F08059B";
         String ownerAddress = "0xfC33984A16FeC91Bece89f73B65f60841F08059B";
-        String ownerPrivateKey = "860b6a80393c6f945795ea28d760752e7bd2d1ee8a39049a023b001812c02de7";
+        String ownerPrivateKey = "";
         String contractAddres = "0xe94db062c34c09c9b24d01a6fd4b3239443dbc70";
         String amount = "1.1";
         BigDecimal gasPrice = new BigDecimal(8);
