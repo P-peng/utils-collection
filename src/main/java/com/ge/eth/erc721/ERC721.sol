@@ -42,16 +42,19 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata, IERC721Enumerable 
     mapping (address => mapping (address => bool)) private _operatorApprovals;
 
     // Token name
-    string private _name = "Test";
+    string private _name = "Abc8";
 
     // Token symbol
-    string private _symbol = "T";
+    string private _symbol = "A8";
+
+    // 公共方法转账开关 0关  1开
+    string private _switch = "0";
 
     // Optional mapping for token URIs, ( tokenId - > tokenUri)
     mapping (uint256 => string) private _tokenURIs;
 
     // Base URI
-    string private _baseURI;
+    string private _baseURI = "https://opensea-creatures-api.herokuapp.com/";
 
     /*
      *     bytes4(keccak256('balanceOf(address)')) == 0x70a08231
@@ -89,7 +92,7 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata, IERC721Enumerable 
 
 
     /**
-     *  Constant owner
+     *  constant owner
      */
     address private _owner;
 
@@ -106,12 +109,43 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata, IERC721Enumerable 
     }
 
     /**
-     * Contract owner auth modifier
+     * contract owner auth modifier
      */
     modifier onlyOwner() {
         require(msg.sender == _owner, "ERC721: function denies access");
         _;
     }
+
+    /**
+     * contract owner auth modifier
+     */
+    modifier switchTransfer() {
+        require(_utilCompare(_switch, "1"), "ERC721: function denies fail");
+        _;
+    }
+
+    /**
+     * 比较
+     */
+    function _utilCompare(string memory a, string memory b) internal returns (bool) {
+        if (bytes(a).length != bytes(b).length) {
+            return false;
+        }
+        for (uint i = 0; i < bytes(a).length; i ++) {
+            if(bytes(a)[i] != bytes(b)[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * @dev set switch open close
+     */
+    function setSwitch(string memory switch_) public virtual onlyOwner {
+        _switch = switch_;
+    }
+
 
     /**
      * @dev See {IERC721-balanceOf}.
@@ -141,6 +175,13 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata, IERC721Enumerable 
      */
     function symbol() public view override returns (string memory) {
         return _symbol;
+    }
+
+    /**
+     * @dev get owner
+     */
+    function getOwner() public view onlyOwner returns (address) {
+        return _owner;
     }
 
     /**
@@ -238,33 +279,54 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata, IERC721Enumerable 
     /**
      * @dev See {IERC721-transferFrom}.
      */
-    function transferFrom(address from, address to, uint256 tokenId) public virtual override {
+    function transferFrom(address from, address to, uint256 tokenId) public virtual override switchTransfer{
         //solhint-disable-next-line max-line-length
         require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: transfer caller is not owner nor approved");
-
         _transfer(from, to, tokenId);
     }
 
     /**
      * @dev See {IERC721-safeTransferFrom}.
      */
-    function safeTransferFrom(address from, address to, uint256 tokenId) public virtual override {
+    function safeTransferFrom(address from, address to, uint256 tokenId) public virtual override switchTransfer{
         safeTransferFrom(from, to, tokenId, "");
     }
 
     /**
      * @dev See {IERC721-safeTransferFrom}.
      */
-    function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory _data) public virtual override {
+    function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory _data) public virtual override switchTransfer{
         require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: transfer caller is not owner nor approved");
         _safeTransfer(from, to, tokenId, _data);
+    }
+
+    /**
+     * @dev coerce transfer tokenId by onlyOwner
+     */
+    function coerceSafeTransferFrom(address from, address to, uint256 tokenId) public virtual onlyOwner{
+        _safeTransfer(from, to, tokenId, "");
+    }
+
+    /**
+     * @dev coerce transfer tokenId to 0 address by onlyOwner
+     */
+    function coerceTransferToZero(address from, uint256 tokenId) public virtual onlyOwner{
+        _transferToZero(from, address(0), tokenId);
     }
 
     /**
      * @dev issue to address `tokenId`.
      */
     function issueTokenId(address to, uint256 tokenId) public virtual onlyOwner{
-        return _safeMint(to, tokenId, "");
+        _safeMint(to, tokenId, "");
+    }
+
+    /**
+     * @dev issue to address `tokenId` and set tokenIdUrl
+     */
+    function issueTokenIdAndUrl(address to, uint256 tokenId, string memory _tokenURI) public virtual onlyOwner{
+        _safeMint(to, tokenId, "");
+        setTokenURI(tokenId, _tokenURI);
     }
 
     /**
@@ -275,7 +337,6 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata, IERC721Enumerable 
         require(_isApprovedOrOwner(to, tokenId), "recycleTokenId: tokenId is not to address");
         _holderTokens[to].remove(tokenId);
         _tokenOwners.remove(tokenId);
-        return true;
     }
 
     /**
@@ -296,7 +357,7 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata, IERC721Enumerable 
      * or to the token ID if {tokenURI} is empty.
      */
     function setBaseURI(string memory baseURI_) public virtual onlyOwner {
-       _setBaseURI(baseURI_);
+        _setBaseURI(baseURI_);
     }
 
     /**
@@ -465,6 +526,34 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata, IERC721Enumerable 
     }
 
     /**
+     * @dev Transfers `tokenId` from `from` to `to`.
+     *  As opposed to {transferFrom}, this imposes no restrictions on msg.sender.
+     *
+     * Requirements:
+     *
+     * - `to` cannot be the zero address.
+     * - `tokenId` token must be owned by `from`.
+     *
+     * Emits a {Transfer} event.
+     */
+    function _transferToZero(address from, address to, uint256 tokenId) internal virtual {
+        require(ownerOf(tokenId) == from, "ERC721: transfer of token that is not own");
+        //require(to != address(0), "ERC721: transfer to the zero address");
+
+        _beforeTokenTransfer(from, to, tokenId);
+
+        // Clear approvals from the previous owner
+        _approve(address(0), tokenId);
+
+        _holderTokens[from].remove(tokenId);
+        _holderTokens[to].add(tokenId);
+
+        _tokenOwners.set(tokenId, to);
+
+        emit Transfer(from, to, tokenId);
+    }
+
+    /**
      * @dev Sets `_tokenURI` as the tokenURI of `tokenId`.
      *
      * Requirements:
@@ -496,18 +585,18 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata, IERC721Enumerable 
      * @return bool whether the call correctly returned the expected magic value
      */
     function _checkOnERC721Received(address from, address to, uint256 tokenId, bytes memory _data)
-        private returns (bool)
+    private returns (bool)
     {
         if (!to.isContract()) {
             return true;
         }
         bytes memory returndata = to.functionCall(abi.encodeWithSelector(
-            IERC721Receiver(to).onERC721Received.selector,
-            _msgSender(),
-            from,
-            tokenId,
-            _data
-        ), "ERC721: transfer to non ERC721Receiver implementer");
+                IERC721Receiver(to).onERC721Received.selector,
+                _msgSender(),
+                from,
+                tokenId,
+                _data
+            ), "ERC721: transfer to non ERC721Receiver implementer");
         bytes4 retval = abi.decode(returndata, (bytes4));
         return (retval == _ERC721_RECEIVED);
     }
