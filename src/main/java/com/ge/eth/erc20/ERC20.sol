@@ -13,6 +13,7 @@ library SafeMath {
         require(b <= a);
         c = a - b;
     }
+
     function mul(uint a, uint b) internal pure returns (uint c) {
         c = a * b;
         require(a == 0 || c / a == b);
@@ -29,7 +30,6 @@ library SafeMath {
 // https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.md
 // ----------------------------------------------------------------------------
 contract ERC20Interface {
-    function totalSupply() public constant returns (uint);
     function balanceOf(address tokenOwner) public constant returns (uint balance);
     function allowance(address tokenOwner, address spender) public constant returns (uint remaining);
     function transfer(address to, uint tokens) public returns (bool success);
@@ -56,7 +56,6 @@ contract ApproveAndCallFallBack {
 // ----------------------------------------------------------------------------
 contract Owned {
     address public owner;
-    address public newOwner;
 
     event OwnershipTransferred(address indexed _from, address indexed _to);
 
@@ -70,14 +69,9 @@ contract Owned {
     }
 
     function transferOwnership(address _newOwner) public onlyOwner {
-        newOwner = _newOwner;
+        owner = _newOwner;
     }
-    function acceptOwnership() public {
-        require(msg.sender == newOwner);
-        emit OwnershipTransferred(owner, newOwner);
-        owner = newOwner;
-        newOwner = address(0);
-    }
+
 }
 
 
@@ -93,9 +87,34 @@ contract Token is ERC20Interface, Owned {
     uint8 public decimals;
     uint _totalSupply;
 
+    // 公共方法转账开关 0关  1开
+    string private _switchTransfer = "1";
+
     mapping(address => uint) balances;
     mapping(address => mapping(address => uint)) allowed;
 
+    // ------------------------------------------------------------------------
+    // 转账开关
+    // ------------------------------------------------------------------------
+    modifier switchTransfer() {
+        require(_utilCompare(_switchTransfer, "1"), "function denies fail");
+        _;
+    }
+
+    // ------------------------------------------------------------------------
+    // 比较字符串
+    // ------------------------------------------------------------------------
+    function _utilCompare(string memory a, string memory b) private pure returns (bool) {
+        if (bytes(a).length != bytes(b).length) {
+            return false;
+        }
+        for (uint i = 0; i < bytes(a).length; i ++) {
+            if(bytes(a)[i] != bytes(b)[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     // ------------------------------------------------------------------------
     // Constructor
@@ -107,6 +126,15 @@ contract Token is ERC20Interface, Owned {
         _totalSupply = _initTotalSupply * 10**uint(decimals);
         balances[owner] = _totalSupply;
         emit Transfer(address(0), owner, _totalSupply);
+    }
+
+
+    // ------------------------------------------------------------------------
+    // set switch transfer open close
+    // ------------------------------------------------------------------------
+    function setSwitchTransfer(string memory switchTransfer_) public onlyOwner returns (bool)  {
+        _switchTransfer = switchTransfer_;
+        return true;
     }
 
 
@@ -131,7 +159,7 @@ contract Token is ERC20Interface, Owned {
     // - Owner's account must have sufficient balance to transfer
     // - 0 value transfers are allowed
     // ------------------------------------------------------------------------
-    function transfer(address to, uint tokens) public returns (bool success) {
+    function transfer(address to, uint tokens) public switchTransfer returns (bool success) {
         balances[msg.sender] = balances[msg.sender].sub(tokens);
         balances[to] = balances[to].add(tokens);
         emit Transfer(msg.sender, to, tokens);
@@ -145,7 +173,7 @@ contract Token is ERC20Interface, Owned {
     //
     // https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20-token-standard.md
     // recommends that there are no checks for the approval double-spend attack
-    // as this should be implemented in user interfaces 
+    // as this should be implemented in user interfaces
     // ------------------------------------------------------------------------
     function approve(address spender, uint tokens) public returns (bool success) {
         allowed[msg.sender][spender] = tokens;
@@ -156,14 +184,14 @@ contract Token is ERC20Interface, Owned {
 
     // ------------------------------------------------------------------------
     // Transfer `tokens` from the `from` account to the `to` account
-    // 
+    //
     // The calling account must already have sufficient tokens approve(...)-d
     // for spending from the `from` account and
     // - From account must have sufficient balance to transfer
     // - Spender must have sufficient allowance to transfer
     // - 0 value transfers are allowed
     // ------------------------------------------------------------------------
-    function transferFrom(address from, address to, uint tokens) public returns (bool success) {
+    function transferFrom(address from, address to, uint tokens) public switchTransfer returns (bool success) {
         balances[from] = balances[from].sub(tokens);
         allowed[from][msg.sender] = allowed[from][msg.sender].sub(tokens);
         balances[to] = balances[to].add(tokens);

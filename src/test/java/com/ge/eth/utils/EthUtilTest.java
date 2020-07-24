@@ -2,6 +2,7 @@ package com.ge.eth.utils;
 
 import lombok.ToString;
 import org.junit.Test;
+import org.web3j.crypto.Credentials;
 import org.web3j.tx.ChainId;
 import org.web3j.tx.ChainIdLong;
 
@@ -10,6 +11,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -33,7 +35,16 @@ public class EthUtilTest {
     @Test
     public void createAccountTest() throws Exception {
 //        for (int i = 0; i < 20; i++) {
-            System.out.println(EthUtil.createAccount());
+        Map<String, String> account = EthUtil.createAccount();
+
+        // 通过私钥读取地址
+            System.out.println(account);
+        Map<String, String> map = EthUtil.genAccountByPrivateKey(account.get("privateKey"));
+        System.out.println(map);
+        Map<String, String> map1 = EthUtil.genAccountByMnemonic(account.get("mnemonic"));
+        System.out.println(map1);
+
+        System.out.println(account.get("privateKey").length());
 //        }
     }
 
@@ -283,13 +294,13 @@ public class EthUtilTest {
     /** 迷念猫的合约 */
 //    private String ERC721_CONTRACT = "0x06012c8cf97BEaD5deAe237070F9587f8E7A266d";
 //    /** 其它合约 */
-    private String ERC721_CONTRACT = "0xa89c36ef635803cdf2157edce94780d7bbefbf89";
+    private String ERC721_CONTRACT = "0xe94db062c34c09c9b24d01a6fd4b3239443dbc70";
     // tokenId
     private Long ERC721_TOKEN_ID = 1488471L;
     // address
-    private String ERC721_ADDRESS = "";
+    private String ERC721_ADDRESS = "0xfC33984A16FeC91Bece89f73B65f60841F08059B";
     // privateKey
-    private String ERC721_PRIVATE_KEY = "";
+    private String ERC721_PRIVATE_KEY = "860b6a80393c6f945795ea28d760752e7bd2d1ee8a39049a023b001812c02de7";
     // address
     private String ERC721_ADDRESS2 = "";
     // privateKey
@@ -393,7 +404,7 @@ public class EthUtilTest {
         BigDecimal bigDecimal = new BigDecimal("8");
 //        860a
 //        BigInteger tokenId = new BigInteger("1461501637330902768847068807506854394484130136909");
-        BigInteger tokenId = new BigInteger("1");
+        BigInteger tokenId = new BigInteger("12312");
         String hash = EthUtil.issueTokenId(toAddress, fromAddress, privateKey, ERC721_CONTRACT, bigDecimal, tokenId);
         System.out.println(hash);
     }

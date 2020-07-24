@@ -81,6 +81,7 @@ public class EthUtil {
         String address = Keys.getAddress(keyPair.getPublicKey());
         // 助记词
         String mnemonic = mnemonicList.toString().replaceAll(", ", " ");
+        mnemonic = mnemonic.substring(1, mnemonic.length() - 1);
         // 私钥 转换16进制
         String privateKey = keyPair.getPrivateKey().toString(16);
         // 公钥 转换16进制
@@ -90,6 +91,54 @@ public class EthUtil {
         map.put("privateKey", privateKey);
         map.put("publicKey", publicKey);
         map.put("address", address);
+        return map;
+    }
+
+    /**
+     * 根据助记词 推 所有
+     *
+     * @param mnemonic
+     * @return
+     */
+    public static Map<String, String> genAccountByMnemonic(String mnemonic) {
+        String [] strings  = mnemonic.split(",");
+        List<String> mnemonicList = Arrays.asList(strings);
+        // 使用助记词生成钱包种子
+        byte[] seed = MnemonicCode.toSeed(mnemonicList, "");
+        DeterministicKey masterPrivateKey = HDKeyDerivation.createMasterPrivateKey(seed);
+        DeterministicHierarchy deterministicHierarchy = new DeterministicHierarchy(masterPrivateKey);
+        DeterministicKey deterministicKey = deterministicHierarchy
+                .deriveChild(BIP44_ETH_ACCOUNT_ZERO_PATH, false, true, new ChildNumber(0));
+        byte[] bytes = deterministicKey.getPrivKeyBytes();
+        ECKeyPair keyPair = ECKeyPair.create(bytes);
+        // 通过公钥生成钱包地址
+        String address = Keys.getAddress(keyPair.getPublicKey());
+        // 助记词
+//        String mnemonic = mnemonicList.toString().replaceAll(", ", " ");
+        // 私钥 转换16进制
+        String privateKey = keyPair.getPrivateKey().toString(16);
+        // 公钥 转换16进制
+        String publicKey = keyPair.getPublicKey().toString(16);
+        HashMap<String, String> map = new HashMap<>(8);
+        map.put("mnemonic", mnemonic);
+        map.put("privateKey", privateKey);
+        map.put("publicKey", publicKey);
+        map.put("address", address);
+        return map;
+    }
+
+    /**
+     * 根据 私钥 推出 公钥，地址
+     * @param privateKey
+     * @return
+     */
+    public static Map<String, String> genAccountByPrivateKey(String privateKey) {
+        Credentials credentials = Credentials.create(privateKey);
+
+        HashMap<String, String> map = new HashMap<>(4);
+        map.put("privateKey", privateKey);
+        map.put("publicKey", credentials.getEcKeyPair().getPublicKey().toString(16));
+        map.put("address", credentials.getAddress());
         return map;
     }
 
@@ -104,7 +153,7 @@ public class EthUtil {
     }
 
     /**
-     * 根据hash查交易是否收到详情 原格式，无效的hash会返回空对象，
+     * 根据hash查交易是否收到详情 原格式，无效的hash会返回空对象，(例如没有上区块的)，
      * 验证交易hash用此方法
      * @param hash
      * @return

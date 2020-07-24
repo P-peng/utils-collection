@@ -1,9 +1,12 @@
 package com.ge.security.sha256;
 
+import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 计算字符串的 sha256 hash值
@@ -13,7 +16,9 @@ import java.security.NoSuchAlgorithmException;
  */
 public class Sha256HashUtil {
 
-    static final String SHA_256 = "SHA-256";
+    private static final String SHA_256 = "SHA-256";
+
+    private static final int HEX = 16;
 
     /**
      * 获取字符串的 hash 值，默认 UTF-8 编码
@@ -24,6 +29,17 @@ public class Sha256HashUtil {
      */
     public static String getHashSHA256(String value) throws NoSuchAlgorithmException {
         return getHashSHA256(value, StandardCharsets.UTF_8);
+    }
+
+    /**
+     * 获取字符串的 hash 值，默认 UTF-8 编码
+     *
+     * @param value
+     * @return
+     * @throws NoSuchAlgorithmException
+     */
+    public static BigInteger getHashSHA256OfDecimal(String value) throws NoSuchAlgorithmException {
+        return new BigInteger(getHashSHA256(value), HEX);
     }
 
     /**
@@ -60,15 +76,56 @@ public class Sha256HashUtil {
     }
 
     /**
+     * 生成 tokenId，返回10进制
+     *
+     * @param list
+     * @return
+     * @throws NoSuchAlgorithmException
+     */
+    public static BigInteger generateTokenOfDecimal(List<String> list) throws NoSuchAlgorithmException {
+        return new BigInteger(generateTokenId(list), 16);
+    }
+
+    /**
+     * 生成 tokenId，返回10进制
+     *
+     * @param list
+     * @return
+     * @throws NoSuchAlgorithmException
+     */
+    public static String generateTokenId(List<String> list) throws NoSuchAlgorithmException {
+        List<String> hashList = new ArrayList<>(20);
+        for (String s : list) {
+            hashList.add(Sha256HashUtil.getHashSHA256(s));
+        }
+        StringBuffer buffer = new StringBuffer();
+        hashList.forEach(s -> {
+            buffer.append(s);
+        });
+        return Sha256HashUtil.getHashSHA256(buffer.toString());
+    }
+
+    /**
      * 测试用例
      *
      * @param args
      */
     public static void main(String[] args) {
         try {
-            String hash = Sha256HashUtil.getHashSHA256("dsads5a4d65sa4d5as4d65as4d65as4d64as56d4a6s4d5as4d645as");
-            System.out.println(hash);
-            System.out.println(hash.length());
+            String string = "dsads5a4d65sa4d5as4d65as4d65as4d64as56d4a6s4d5as4d645as";
+            String hash = Sha256HashUtil.getHashSHA256(string);
+            System.out.println("十六进制: " + hash);
+//            System.out.println(hash.length());
+            // 十进制
+            System.out.println("十进制: " + getHashSHA256OfDecimal(string));
+
+
+            List<String> list = new ArrayList<>();
+            list.add("123123121321231231231231231231231231231231231312312123123121321231231231231231231231231231231231312312");
+            list.add("123123121321231231231231231231231231231231231312312123123121321231231231231231231231231231231231312312");
+            System.out.println("十六进制 = " + generateTokenId(list));
+            System.out.println("十进制 = " + generateTokenOfDecimal(list));
+
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }

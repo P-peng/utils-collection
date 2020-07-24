@@ -42,10 +42,10 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata, IERC721Enumerable 
     mapping (address => mapping (address => bool)) private _operatorApprovals;
 
     // Token name
-    string private _name = "Abc8";
+    string private _name = "Abc10";
 
     // Token symbol
-    string private _symbol = "A8";
+    string private _symbol = "A10";
 
     // 公共方法转账开关 0关  1开
     string private _switch = "0";
@@ -54,7 +54,7 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata, IERC721Enumerable 
     mapping (uint256 => string) private _tokenURIs;
 
     // Base URI
-    string private _baseURI = "https://opensea-creatures-api.herokuapp.com/";
+    string private _baseURI = "";
 
     /*
      *     bytes4(keccak256('balanceOf(address)')) == 0x70a08231
