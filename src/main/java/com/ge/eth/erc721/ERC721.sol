@@ -127,7 +127,7 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata, IERC721Enumerable 
     /**
      * 比较
      */
-    function _utilCompare(string memory a, string memory b) internal returns (bool) {
+    function _utilCompare(string memory a, string memory b) private pure returns (bool) {
         if (bytes(a).length != bytes(b).length) {
             return false;
         }

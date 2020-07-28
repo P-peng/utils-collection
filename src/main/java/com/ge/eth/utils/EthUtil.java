@@ -11,6 +11,8 @@ import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.crypto.*;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
+import org.web3j.protocol.core.Request;
+import org.web3j.protocol.core.methods.response.EthGasPrice;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
@@ -22,6 +24,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 
 /**
  * @author
@@ -39,9 +42,9 @@ public class EthUtil {
      * @link:https://infura.io/
      */
     // 主网
-//    private static String BASE_URL = "https://mainnet.infura.io/v3/baba69547b5049d687d12db75d58431a";
-//    /** 测试 */
-    private static String BASE_URL = "https://ropsten.infura.io/v3/baba69547b5049d687d12db75d58431a";
+    private static String BASE_URL = "https://mainnet.infura.io/v3/baba69547b5049d687d12db75d58431a";
+    /** 测试 */
+//    private static String BASE_URL = "https://ropsten.infura.io/v3/baba69547b5049d687d12db75d58431a";
 
     /**
      * web3 RPC对象
@@ -198,6 +201,16 @@ public class EthUtil {
      */
     public static BigInteger getNonceByAddress(String address) throws IOException {
         return web3.ethGetTransactionCount(address,DefaultBlockParameterName.LATEST).send().getTransactionCount();
+    }
+
+    /**
+     * 可用
+     * 获取当前加速等级
+     * @return
+     * @throws IOException
+     */
+    public static BigInteger getGasPrice() throws IOException {
+        return web3.ethGasPrice().send().getGasPrice();
     }
 
     /**
@@ -775,12 +788,17 @@ public class EthUtil {
     public static String issueTokenId(String toAddress, String fromAddress, String privateKey, String contractAddress, BigDecimal gasPriceValue, BigInteger tokenId){
         try{
             // 去链上获取noces的值，可考虑函数传入
-//            BigInteger nonce = new BigInteger("233");
-            BigInteger nonce = web3.ethGetTransactionCount(fromAddress, DefaultBlockParameterName.PENDING).send().getTransactionCount();
+//            BigInteger nonce = new BigInteger("973");
             // 支付的矿工费倍率 相当于加速
+//            BigInteger gasPrice = new BigInteger("200");
+
+//            // 去链上获取noces的值，可考虑函数传入
+            BigInteger nonce = web3.ethGetTransactionCount(fromAddress, DefaultBlockParameterName.PENDING).send().getTransactionCount();
+//            // 支付的矿工费倍率 相当于加速
             BigInteger gasPrice = Convert.toWei(gasPriceValue, Convert.Unit.GWEI).toBigInteger();
+            System.out.println("nonce = " + nonce +", gas = " + gasPrice);
             // 支付矿工费的基础额度
-            BigInteger gasLimit = new BigInteger("210000");
+            BigInteger gasLimit = new BigInteger("160000");
             Credentials credentials = Credentials.create(privateKey);
 
             // 封装转账交易, 类似于sdk调用智能合约
@@ -798,6 +816,7 @@ public class EthUtil {
             // 广播裸交易
             String hash = web3.ethSendRawTransaction(Numeric.toHexString(signMessage)).sendAsync().get().getTransactionHash();
 //            logger.info("ETH代币转账,发送方:{},接收方:{},发送金额:{},hash:{}",new Object[]{from,to,amount,hash});
+            System.out.println(hash);
             return hash ;
         }catch (Exception e){
             e.printStackTrace();
@@ -915,7 +934,7 @@ public class EthUtil {
             // 支付的矿工费倍率 相当于加速
             BigInteger gasPrice = Convert.toWei(gasPriceValue, Convert.Unit.GWEI).toBigInteger();
             // 支付矿工费的
-            BigInteger gasLimit = new BigInteger("210000");
+            BigInteger gasLimit = new BigInteger("160000");
             Credentials credentials = Credentials.create(privateKey);
 
             // 封装转账交易, 类似于sdk调用智能合约
@@ -941,5 +960,31 @@ public class EthUtil {
 //            logger.info("虚拟币ETH代币转账失败，错误代码：{}",new Object[]{e.getMessage()});
             return null ;
         }
+    }
+
+    public static String setSwitch(String sw, String privateKey, String contractAddress, BigDecimal gasPriceValue, BigInteger nonce) throws ExecutionException, InterruptedException {
+
+        // 支付的矿工费倍率 相当于加速
+        BigInteger gasPrice = Convert.toWei(gasPriceValue, Convert.Unit.GWEI).toBigInteger();
+        // 支付矿工费的基础额度
+        BigInteger gasLimit = new BigInteger("210000");
+        Credentials credentials = Credentials.create(privateKey);
+
+        // 封装转账交易, 类似于sdk调用智能合约
+        Function function = new Function(
+                "setSwitch",
+                Arrays.<Type>asList(
+                        new Utf8String(sw)),
+                Collections.<TypeReference<?>>emptyList());
+        String data = FunctionEncoder.encode(function);
+        // 构造裸交易
+        RawTransaction rawTransaction = RawTransaction.createTransaction(nonce, gasPrice, gasLimit, contractAddress, data);
+        // 签名裸交易
+        byte[] signMessage = TransactionEncoder.signMessage(rawTransaction, credentials);
+        // 广播裸交易
+//        log.info("web3j调用,请求,setSwitch--->, sw={}", sw);
+        String hash = web3.ethSendRawTransaction(Numeric.toHexString(signMessage)).sendAsync().get().getTransactionHash();
+//        log.info("web3j调用,请求,setSwitch--->, hash={}", hash);
+        return hash ;
     }
 }

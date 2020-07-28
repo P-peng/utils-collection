@@ -32,7 +32,18 @@ public class DateUtil {
      * @param date2
      * @return 返回相差的天数
      */
-    public static int differentDaysByMillisecond(Date date1,Date date2) {
+    public static int differentDaysByMillisecond(Date date1, Date date2) {
         return (int) ((date2.getTime() - date1.getTime()) / (1000*3600*24));
+    }
+
+    /**
+     * 通过时间秒毫秒数判断两个时间的间隔 分钟
+     *
+     * @param date1
+     * @param date2
+     * @return 返回相差的天数
+     */
+    public static int differentMinutesByMillisecond(Date date1, Date date2) {
+        return (int) ((date2.getTime() - date1.getTime()) / (1000*60));
     }
 }
