@@ -9,6 +9,7 @@ import org.web3j.tx.ChainIdLong;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -61,6 +62,20 @@ public class EthUtilTest {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @Test
+    public void getAddressBySignTest() throws SignatureException {
+        String rwaAddress = "0xfC33984A16FeC91Bece89f73B65f60841F08059B";
+        String privateKey = "860b6a80393c6f945795ea28d760752e7bd2d1ee8a39049a023b001812c02de7";
+
+        String s1 = "0xf86b8203d484b2d05e008252089406193dd85759b278063e0f7da45ed84bf0c7b76586da475abf0000801ba0";
+        String s2 = "dffb34cda24b35b04a55dcd14fa8726204681d173078ab96ce9e8aeef0b636eaa044d42140e02fd6cd0fd1026171049fdcc4c38df3b9aa102aef409b46458591c3";
+
+        String signData = s1 + s2;
+      //String signData = "0xf86b8203d884b2d05e008252089406193dd85759b278063e0f7da45ed84bf0c7b76586da475abf0000801ba09045e7e8fcd96bb49096c2791abf84d46c12a98f20a544434921a212126c5a16a04f1eb3fb8fa352d03e91c236ca656197b58f4eaeeeb63aea1314cde6341594db";
+      //String signData = "0xf86b8203d984b2d05e008252089406193dd85759b278063e0f7da45ed84bf0c7b76586da475abf0000801ba00db44d86a59392cd203f43a9d894ebae8e669194b98a396f6b406019469dda18a04de81f439be09fda952fe17de2e339de2c9ccc7f6f35067748e75061a1cce178";
+        EthUtil.getAddressBySign(signData);
     }
 
     /**
@@ -125,11 +140,11 @@ public class EthUtilTest {
     @Test
     public void tokenTransactionTest() throws IOException {
         // 出金地址
-        String fromAddress = "";
+        String fromAddress = "0xfC33984A16FeC91Bece89f73B65f60841F08059B";
         // 出金地址私钥
         String privateKey = "";
 
-        String toAddress = "";
+        String toAddress = "0x06193DD85759b278063e0F7da45Ed84BF0C7b765";
         Double amount = new Double(0.00024);
         /**
          * 手续费倍率，2最低，4慢，6中，8快

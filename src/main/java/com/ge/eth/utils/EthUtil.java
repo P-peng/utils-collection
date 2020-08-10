@@ -16,6 +16,10 @@ import org.web3j.protocol.core.methods.response.EthGasPrice;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
+import org.web3j.rlp.RlpDecoder;
+import org.web3j.rlp.RlpList;
+import org.web3j.rlp.RlpString;
+import org.web3j.rlp.RlpType;
 import org.web3j.utils.Convert;
 import org.web3j.utils.Numeric;
 import sun.security.provider.SecureRandom;
@@ -23,6 +27,7 @@ import sun.security.provider.SecureRandom;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.security.SignatureException;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
@@ -42,9 +47,9 @@ public class EthUtil {
      * @link:https://infura.io/
      */
     // 主网
-    private static String BASE_URL = "https://mainnet.infura.io/v3/baba69547b5049d687d12db75d58431a";
+//    private static String BASE_URL = "https://mainnet.infura.io/v3/baba69547b5049d687d12db75d58431a";
     /** 测试 */
-//    private static String BASE_URL = "https://ropsten.infura.io/v3/baba69547b5049d687d12db75d58431a";
+    private static String BASE_URL = "https://ropsten.infura.io/v3/baba69547b5049d687d12db75d58431a";
 
     /**
      * web3 RPC对象
@@ -203,6 +208,34 @@ public class EthUtil {
         return web3.ethGetTransactionCount(address,DefaultBlockParameterName.LATEST).send().getTransactionCount();
     }
 
+    public static void getAddressBySign(String signedData) throws SignatureException {
+        System.out.println(signedData);
+        System.out.println("解密 start " + System.currentTimeMillis());
+        RlpList rlpList = RlpDecoder.decode(Numeric.hexStringToByteArray(signedData));
+
+        List<RlpType> values = ((RlpList) rlpList.getValues().get(0)).getValues();
+        BigInteger nonce = Numeric.toBigInt(((RlpString) values.get(0)).getBytes());
+        BigInteger gasPrice = Numeric.toBigInt(((RlpString) values.get(1)).getBytes());
+        BigInteger gasLimit = Numeric.toBigInt(((RlpString) values.get(2)).getBytes());
+        String to = Numeric.toHexString(((RlpString) values.get(3)).getBytes());
+        BigInteger value = Numeric.toBigInt(((RlpString) values.get(4)).getBytes());
+        String data = Numeric.toHexString(((RlpString) values.get(5)).getBytes());
+        RawTransaction rawTransaction = RawTransaction.createTransaction(nonce, gasPrice, gasLimit, to, value, data);
+        RlpString v = (RlpString) values.get(6);
+        RlpString r = (RlpString) values.get(7);
+        RlpString s = (RlpString) values.get(8);
+        Sign.SignatureData signatureData = new Sign.SignatureData(
+                v.getBytes()[0],
+                Numeric.toBytesPadded(Numeric.toBigInt(r.getBytes()), 32),
+                Numeric.toBytesPadded(Numeric.toBigInt(s.getBytes()), 32));
+        BigInteger pubKey = Sign.signedMessageToKey(TransactionEncoder.encode(rawTransaction), signatureData);
+        System.out.println("publicKey " + pubKey.toString(16));
+        String address = Numeric.prependHexPrefix(Keys.getAddress(pubKey));
+        System.out.println("address " + address);
+        System.out.println("解密 end " + System.currentTimeMillis());
+
+    }
+
     /**
      * 可用
      * 获取当前加速等级
@@ -239,6 +272,8 @@ public class EthUtil {
         byte[] signedMessage = TransactionEncoder.signMessage(rawTransaction, credentials);
         String hexValue = Numeric.toHexString(signedMessage);
         // 发送交易
+
+        System.out.println(hexValue);
         String hash = web3.ethSendRawTransaction(hexValue).send().getTransactionHash();
         return hash;
     }
