@@ -1,5 +1,6 @@
 package com.ge.date;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -8,6 +9,8 @@ import java.util.GregorianCalendar;
  * 时间工具类
  */
 public class DateUtil {
+
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     /**
      * 日期加减天数
@@ -45,5 +48,12 @@ public class DateUtil {
      */
     public static int differentMinutesByMillisecond(Date date1, Date date2) {
         return (int) ((date2.getTime() - date1.getTime()) / (1000*60));
+    }
+
+    /*
+     * 将时间戳转换为时间
+     */
+    public static String stampToDate(long time){
+        return sdf.format(new Date(time));
     }
 }
