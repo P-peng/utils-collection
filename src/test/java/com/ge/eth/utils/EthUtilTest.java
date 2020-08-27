@@ -1,10 +1,13 @@
 package com.ge.eth.utils;
 
 import lombok.ToString;
+import org.ethereum.crypto.cryptohash.Keccak256;
 import org.junit.Test;
 import org.web3j.crypto.Credentials;
+import org.web3j.crypto.Sign;
 import org.web3j.tx.ChainId;
 import org.web3j.tx.ChainIdLong;
+import org.web3j.utils.Numeric;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -78,6 +81,38 @@ public class EthUtilTest {
         EthUtil.getAddressBySign(signData);
     }
 
+    @Test
+    public void sha3Test() throws SignatureException {
+        String privateKey = "fad9c8855b740a0b7ed4c221dbad0f33a83a49cad6b3fe8d5817ac83d38b6a19";
+
+        byte[] input = "hello".getBytes();
+
+        // 进行 Keccak256 算法
+        Keccak256 digest = new Keccak256();
+        digest.update(input);
+        byte[] bytes = digest.digest();
+
+        // 字节转换成 16进制字符串
+        String s = toHexString(bytes);
+        // sha3数据
+        System.out.println(s);
+        System.out.println(Numeric.toHexString(bytes));
+
+        // 转账人私钥
+        Credentials credentials = Credentials.create(privateKey);
+        // 签名
+//        Sign.SignatureData signatureData = Sign.signMessage(bytes, credentials.getEcKeyPair());
+
+        Sign.SignatureData signatureData = Sign.signMessage(bytes, credentials.getEcKeyPair(), false);
+
+        System.out.println(Numeric.toHexString(signatureData.getR()));
+        System.out.println(Numeric.toHexString(signatureData.getS()));
+        System.out.println(Numeric.toHexString(signatureData.getV()));
+
+
+    }
+
+
     /**
      * ETH 查询余额
      * @Test T
@@ -142,7 +177,7 @@ public class EthUtilTest {
         // 出金地址
         String fromAddress = "0xfC33984A16FeC91Bece89f73B65f60841F08059B";
         // 出金地址私钥
-        String privateKey = "";
+        String privateKey = "860b6a80393c6f945795ea28d760752e7bd2d1ee8a39049a023b001812c02de7";
 
         String toAddress = "0x06193DD85759b278063e0F7da45Ed84BF0C7b765";
         Double amount = new Double(0.00024);
@@ -562,5 +597,27 @@ public class EthUtilTest {
             e1.printStackTrace();
         }
         return s;
+    }
+
+
+    // 16进制字符
+    private static final char[] HEX_CHAR = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
+
+    /**
+     * 方法三： byte[]-->hexString
+     * @explain 使用位运算
+     * @param bytes
+     * @return
+     */
+    public static String toHexString(byte[] bytes) {
+        char[] buf = new char[bytes.length * 2];
+        int index = 0;
+        // 利用位运算进行转换，可以看作方法二的变型
+        for (byte b : bytes) {
+            buf[index++] = HEX_CHAR[b >>> 4 & 0xf];
+            buf[index++] = HEX_CHAR[b & 0xf];
+        }
+
+        return new String(buf);
     }
 }
